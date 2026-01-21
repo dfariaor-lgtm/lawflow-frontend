@@ -1,49 +1,60 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [mensagem, setMensagem] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
 
-  async function testarBackend() {
+  const handleLogin = async () => {
     try {
-      const response = await fetch(
-        "https://lawflow-backend.onrender.com/test"
+      const res = await fetch(
+        "https://lawflow-backend.onrender.com/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        }
       );
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (data.success) {
-        setMensagem("Backend conectado com sucesso ✅");
+      if (!res.ok) {
+        setMessage(data.error || "Erro no login");
+        return;
       }
-    } catch (error) {
-      setMensagem("Erro ao conectar com o backend ❌");
+
+      // salva token
+      localStorage.setItem("lawflow_token", data.token);
+      setMessage("Login realizado com sucesso 🚀");
+    } catch (err) {
+      setMessage("Erro de conexão com o backend");
     }
-  }
+  };
 
   return (
-    <main style={styles.main}>
-      <h1>LawFlow</h1>
+    <div style={{ padding: 40 }}>
+      <h1>LawFlow AI</h1>
 
-      <button onClick={testarBackend} style={styles.button}>
-        Testar conexão com backend
-      </button>
+      <input
+        placeholder="Email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+      />
+      <br /><br />
 
-      {mensagem && <p>{mensagem}</p>}
-    </main>
+      <input
+        type="password"
+        placeholder="Senha"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+      />
+      <br /><br />
+
+      <button onClick={handleLogin}>Entrar</button>
+
+      <p>{message}</p>
+    </div>
   );
 }
-
-const styles = {
-  main: {
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "20px",
-  },
-  button: {
-    padding: "12px 20px",
-    fontSize: "16px",
-    cursor: "pointer",
-  },
-};
